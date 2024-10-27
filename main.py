@@ -1,16 +1,32 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Form
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
+from fastapi import Request
 
 app = FastAPI()
+templates = Jinja2Templates(directory="templates")
 
-@app.get("/calculate")
-async def calculate(operation: str, num1: float, num2: float):
+@app.get("/", response_class=HTMLResponse)
+async def home(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
+
+@app.post("/calculate", response_class=HTMLResponse)
+async def calculate(
+    request: Request,
+    operation: str = Form(...),
+    num1: float = Form(...),
+    num2: float = Form(...),
+):
     if operation == "add":
-        return {"result": num1 + num2}
+        result = num1 + num2
     elif operation == "subtract":
-        return {"result": num1 - num2}
+        result = num1 - num2
     elif operation == "multiply":
-        return {"result": num1 * num2}
+        result = num1 * num2
     elif operation == "divide":
-        return {"result": num1 / num2 if num2 != 0 else "Cannot divide by zero"}
+        result = num1 / num2 if num2 != 0 else "Cannot divide by zero"
     else:
-        return {"error": "Invalid operation"}
+        result = "Invalid operation"
+    
+    return templates.TemplateResponse("index.html", {"request": request, "result": result})
+
